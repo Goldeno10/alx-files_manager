@@ -68,6 +68,42 @@ class FileController {
     const fileCreated = this.client.createFile(file);
     return res.status(201).send(fileCreated);
   }
+
+  getShow(req, res) {
+    const token = req.header('X-Token');
+    if (!token) return res.status(401).send({ error: 'Unauthorized' });
+    const key = `auth_${token}`;
+    const userId = this.redisClient.get(key);
+
+    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const file = this.client.findFile({ _id: id });
+
+    if (!file) return res.status(404).send({ error: 'Not found' });
+    if (file.userId !== userId && !file.isPublic) return res.status(404).send({ error: 'Not found' });
+
+    return res.status(200).send(file);
+  }
+
+  getIndex(req, res) {
+    const token = req.header('X-Token');
+    if (!token) return res.status(401).send({ error: 'Unauthorized' });
+    const key = `auth_${token}`;
+    const userId = this.redisClient.get(key);
+
+    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+
+    const { parentId } = req.query || 0;
+    const parentFile = this.client.findFile({ _id: parentId });
+
+    if (parentId && !parentFile) return res.status(200).send([]);
+    const page = req.query.page || 0;
+    const limit = req.query.limit || 20;
+    const files = this.client.findAllFilesPaginated(parentId, page, limit);
+
+    return res.status(200).send(files);
+  }
 }
 
 const fileController = new FileController();

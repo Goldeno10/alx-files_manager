@@ -34,7 +34,7 @@ class DBClient {
   }
 
   async findFile(file) {
-    const fileFound = await this.db.collection('files').findOne(file);
+    const fileFound = await this.db.collection('files').find(file);
     return fileFound;
   }
 
@@ -51,6 +51,19 @@ class DBClient {
   async createUser(user) {
     const userCreated = await this.db.collection('users').insertOne(user);
     return userCreated;
+  }
+
+  findAllFilesPaginated(parentId, page, lim) {
+    return this.db.collection('files')
+      .aggregate([
+        {
+          $match: {
+            parentId,
+          },
+        },
+        { $skip: (page - 1) * lim },
+        { $limit: lim },
+      ]);
   }
 }
 
