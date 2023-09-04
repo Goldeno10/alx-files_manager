@@ -65,6 +65,11 @@ class DBClient {
         { $limit: lim },
       ]);
   }
+
+  updateFile(_id, body) {
+    return this.db.collection('files')
+      .updateOne({ _id }, { $set: body });
+  }
 }
 
 const dbClient = new DBClient();

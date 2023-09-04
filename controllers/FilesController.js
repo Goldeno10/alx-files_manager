@@ -12,13 +12,7 @@ class FileController {
   }
 
   postUpload(req, res) {
-    const token = req.header('X-Token');
-    if (!token) return res.status(401).send({ error: 'Unauthorized' });
-    const key = `auth_${token}`;
-    const userId = this.redisClient.get(key);
-
-    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
-
+    const userId = this.retrieveUser(req, res);
     const acceptedFileTypes = ['folder', 'file', 'image'];
     const {
       name,
@@ -70,12 +64,7 @@ class FileController {
   }
 
   getShow(req, res) {
-    const token = req.header('X-Token');
-    if (!token) return res.status(401).send({ error: 'Unauthorized' });
-    const key = `auth_${token}`;
-    const userId = this.redisClient.get(key);
-
-    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+    const userId = this.retrieveUser(req, res);
 
     const { id } = req.params;
     const file = this.client.findFile({ _id: id });
@@ -87,12 +76,7 @@ class FileController {
   }
 
   getIndex(req, res) {
-    const token = req.header('X-Token');
-    if (!token) return res.status(401).send({ error: 'Unauthorized' });
-    const key = `auth_${token}`;
-    const userId = this.redisClient.get(key);
-
-    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+    this.retrieveUser(req, res);
 
     const { parentId } = req.query || 0;
     const parentFile = this.client.findFile({ _id: parentId });
@@ -103,6 +87,45 @@ class FileController {
     const files = this.client.findAllFilesPaginated(parentId, page, limit);
 
     return res.status(200).send(files);
+  }
+
+  putPublish(req, res) {
+    const userId = this.retrieveUser(req, res);
+    const { id } = req.params;
+    const file = this.client.findFile({ _id: id });
+
+    if (!file) return res.status(404).send({ error: 'Not found' });
+    if (file.userId !== userId) return res.status(404).send({ error: 'Not found' });
+
+    file.isPublic = true;
+    this.client.updateFile(id, file);
+    return res.status(200).send(file);
+  }
+
+  putUnpublish(req, res) {
+    const userId = this.retrieveUser(req, res);
+    const { id } = req.params;
+    const file = this.client.findFile({ _id: id });
+
+    if (!file) return res.status(404).send({ error: 'Not found' });
+    if (file.userId !== userId) return res.status(404).send({ error: 'Not found' });
+
+    file.isPublic = false;
+    this.client.updateFile(id, file);
+    return res.status(200).send({ isPublic: false });
+  }
+
+  retrieveUser(req, res) {
+    const token = req.header('X-Token');
+    if (!token) return res.status(401).send({ error: 'Unauthorized' });
+    const key = `auth_${token}`;
+    const userId = this.redisClient.get(key);
+
+    if (!userId) return res.status(401).send({ error: 'Unauthorized' });
+
+    const user = this.client.findUser({ _id: userId });
+    if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    return userId;
   }
 }
 
