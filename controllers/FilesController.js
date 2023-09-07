@@ -1,10 +1,17 @@
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import fileQueue from '../worker';
 
 // A media type (also known as a Multipurpose Internet Mail Extensions or MIME type)
 const mime = require('mime-types');
-const uuid = require('uuidv4');
 const fs = require('fs');
+const uuid = require('uuidv4');
+
+// const Queue = require('bull');
+
+// const fileQueue = new Queue('fileQueue');
+
+
 
 class FileController {
   constructor() {
@@ -62,6 +69,13 @@ class FileController {
     };
 
     const fileCreated = this.client.createFile(file);
+
+    if (type === 'image') {
+      fileQueue.add({
+        userId,
+        fileId: fileCreated._id,
+      });
+    }
     return res.status(201).send(fileCreated);
   }
 
@@ -120,6 +134,7 @@ class FileController {
   getFile(req, res) {
     const userId = this.retrieveUser(req, res);
     const { id } = req.params;
+    const size = req.query.size;
     const file = this.client.findFile({ _id: id });
 
     if (!file) return res.status(404).send({ error: 'Not found' });
