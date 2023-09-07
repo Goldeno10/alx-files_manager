@@ -1,6 +1,8 @@
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
+// A media type (also known as a Multipurpose Internet Mail Extensions or MIME type)
+const mime = require('mime-types');
 const uuid = require('uuidv4');
 const fs = require('fs');
 
@@ -113,6 +115,27 @@ class FileController {
     file.isPublic = false;
     this.client.updateFile(id, file);
     return res.status(200).send({ isPublic: false });
+  }
+
+  getFile(req, res) {
+    const userId = this.retrieveUser(req, res);
+    const { id } = req.params;
+    const file = this.client.findFile({ _id: id });
+
+    if (!file) return res.status(404).send({ error: 'Not found' });
+    if (file.userId !== userId && !file.isPublic) return res.status(404).send({ error: 'Not found' });
+
+    if (file.type === 'folder') return res.status(400).send({ error: 'A folder doesn\'t have content' });
+
+    const fileContent = fs.readFileSync(file.localPath, { encoding: 'utf-8' });
+    const buff = Buffer.from(fileContent);
+    const base64data = buff.toString('base64');
+
+    const contentType = mime.lookup(file.name);
+    const contentDisposition = `inline; filename=${file.name}`;
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', contentDisposition);
+    return res.status(200).send(base64data);
   }
 
   retrieveUser(req, res) {

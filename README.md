@@ -9,5 +9,4 @@ Change permission of a file
 View a file
 Generate thumbnails for images
 
-
 Of course, this kind of service already exists in the real life - it’s a learning purpose to assemble each piece and build a full product.
