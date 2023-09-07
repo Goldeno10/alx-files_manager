@@ -134,23 +134,32 @@ class FileController {
   getFile(req, res) {
     const userId = this.retrieveUser(req, res);
     const { id } = req.params;
-    const size = req.query.size;
     const file = this.client.findFile({ _id: id });
 
     if (!file) return res.status(404).send({ error: 'Not found' });
     if (file.userId !== userId && !file.isPublic) return res.status(404).send({ error: 'Not found' });
-
     if (file.type === 'folder') return res.status(400).send({ error: 'A folder doesn\'t have content' });
 
-    const fileContent = fs.readFileSync(file.localPath, { encoding: 'utf-8' });
-    const buff = Buffer.from(fileContent);
-    const base64data = buff.toString('base64');
+    const { size } = req.query;
+    let filePath;
 
-    const contentType = mime.lookup(file.name);
-    const contentDisposition = `inline; filename=${file.name}`;
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', contentDisposition);
-    return res.status(200).send(base64data);
+    if (size) {
+        filePath = `${this.path}/${id}_${size}`;
+    } else {
+        filePath = file.localPath;
+    }
+    try {
+        fs.accessSync(filePath);
+        const fileContent = fs.readFileSync(filePath);
+        const contentType = mime.lookup(file.name);
+        const contentDisposition = `inline; filename=${file.name}`;
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', contentDisposition);
+
+        return res.status(200).send(fileContent);
+    } catch (error) {
+        return res.status(404).send({ error: 'Not found' });
+    }
   }
 
   retrieveUser(req, res) {

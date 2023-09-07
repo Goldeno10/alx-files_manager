@@ -17,21 +17,16 @@ fileQueue.process(async (job) => {
   if (!fileId) {
     throw new Error('Missing fileId');
   }
-
-  // Find the file in the database
   const file = dbClient.findFile({ _id: fileId, userId });
 
   if (!file) {
     throw new Error('File not found');
   }
 
-  // Generate thumbnails
   const originalImagePath = file.localPath;
   const thumbnailOptions = { width: [500, 250, 100] };
-
   const thumbnails = await thumbnail(originalImagePath, thumbnailOptions);
 
-  // Store each thumbnail with a modified file name
   for (const width of [500, 250, 100]) {
     const thumbnailFileName = `${originalImagePath}_${width}`;
     await fs.writeFile(thumbnailFileName, thumbnails[width]);
