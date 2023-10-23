@@ -1,5 +1,5 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+import dbClient from './utils/db';
+// import redisClient from 'utils/redis';
 
 const Queue = require('bull');
 const thumbnail = require('image-thumbnail');
@@ -29,7 +29,7 @@ fileQueue.process(async (job) => {
 
   for (const width of [500, 250, 100]) {
     const thumbnailFileName = `${originalImagePath}_${width}`;
-    await fs.writeFile(thumbnailFileName, thumbnails[width]);
+    fs.writeFile(thumbnailFileName, thumbnails[width]);
   }
   return { success: true };
 });

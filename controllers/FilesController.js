@@ -11,8 +11,6 @@ const uuid = require('uuidv4');
 
 // const fileQueue = new Queue('fileQueue');
 
-
-
 class FileController {
   constructor() {
     this.client = dbClient;
@@ -144,21 +142,21 @@ class FileController {
     let filePath;
 
     if (size) {
-        filePath = `${this.path}/${id}_${size}`;
+      filePath = `${this.path}/${id}_${size}`;
     } else {
-        filePath = file.localPath;
+      filePath = file.localPath;
     }
     try {
-        fs.accessSync(filePath);
-        const fileContent = fs.readFileSync(filePath);
-        const contentType = mime.lookup(file.name);
-        const contentDisposition = `inline; filename=${file.name}`;
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Content-Disposition', contentDisposition);
+      fs.accessSync(filePath);
+      const fileContent = fs.readFileSync(filePath);
+      const contentType = mime.lookup(file.name);
+      const contentDisposition = `inline; filename=${file.name}`;
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', contentDisposition);
 
-        return res.status(200).send(fileContent);
+      return res.status(200).send(fileContent);
     } catch (error) {
-        return res.status(404).send({ error: 'Not found' });
+      return res.status(404).send({ error: 'Not found' });
     }
   }
 
