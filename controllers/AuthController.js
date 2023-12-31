@@ -1,9 +1,12 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+// import dbClient from '../utils/db';
+// import redisClient from '../utils/redis';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const uuid = require('uuidv4');
 const crypto = require('crypto');
+
+const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class AuthController {
   constructor() {

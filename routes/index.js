@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-const AppController = require('../controllers/AppController');
+const AppController = require('../controllers/AppController').default;
 const AuthController = require('../controllers/AuthController');
 const UserController = require('../controllers/UserController');
 const FilesController = require('../controllers/FilesController');
@@ -8,7 +8,7 @@ const FilesController = require('../controllers/FilesController');
 const router = Router();
 
 router.get('/status', AppController.getStatus);
-router.get('/stats', AppController.getStates);
+router.get('/stats', AppController.getStats);
 
 router.get('/connect', AuthController.getConnect);
 router.get('/disconnect', AuthController.getDisconnect);

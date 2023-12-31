@@ -1,11 +1,15 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
-import fileQueue from '../worker';
+// import { dbClient } from '../utils/db';
+// import { redisClient}  from '../utils/redis';
+// import { fileQueue } from '../worker';
 
 // A media type (also known as a Multipurpose Internet Mail Extensions or MIME type)
 const mime = require('mime-types');
 const fs = require('fs');
 const uuid = require('uuidv4');
+
+const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
+const fileQueue = require('../worker');
 
 // const Queue = require('bull');
 

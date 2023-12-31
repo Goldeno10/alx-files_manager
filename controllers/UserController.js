@@ -1,7 +1,10 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+// import dbClient from '../utils/db';
+// import redisClient from '../utils/redis';
 
 const crypto = require('crypto');
+
+const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class UserController {
   constructor() {

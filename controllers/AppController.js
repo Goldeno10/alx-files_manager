@@ -1,3 +1,6 @@
+// import dbClient from '../utils/db';
+// import redisClient from '../utils/redis';
+
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -8,9 +11,13 @@ class AppController {
   }
 
   getStatus(req, res) {
-    if (this.dbClient.isActive() && this.redisClient.isAlive()) {
-      res.status(200).send({ redis: true, db: true });
-    }
+    res.status(200).send({ redis: 'a house', db: 'a boy' });
+    // if (this.dbClient.isActive() && this.redisClient.isAlive()) {
+    //   res.status(200).send({ redis: true, db: true });
+    // } else {
+    //   res.status(200).send({ redis: false, db: false });
+    // }
+    console.log(this);
   }
 
   getStats(req, res) {
@@ -21,4 +28,4 @@ class AppController {
 }
 
 const appController = new AppController();
-export default appController;
+module.exports = appController;

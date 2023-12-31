@@ -3,24 +3,35 @@ import { promisify } from 'util';
 
 class DBClient {
   constructor() {
-    const host = process.env.DB_HOST || 'localhost';
-    const port = process.env.DB_PORT || 27017;
+    this.init();
+  }
+
+  async init() {
+    // const host = process.env.DB_HOST || '0.0.0.0';
+    // const port = process.env.DB_PORT || 27017;
     const database = process.env.DB_DATABASE || 'files_manager';
-    const url = `mongodb://${host}:${port}`;
+    const url = 'mongodb://localhost:27017';
+    // const url = `mongodb://${host}:${port}/${database}`;
 
-    this.client = new MongoClient(url);
-    this.db = this.client.db(database);
-    this.client.connect();
+    try {
+      this.client = new MongoClient(url);
+      await this.client.connect();
+      this.db = this.client.db(database);
 
-    this.nbUsers = promisify(this.db.collection('users').countDocuments).bind(this.db.collection('users'));
-    this.findUser = promisify(this.db.collection('users').findOne).bind(this.db.collection('users'));
-    this.nbFiles = promisify(this.db.collection('files').countDocuments).bind(this.db.collection('files'));
-    this.findFile = promisify(this.db.collection('files').findOne).bind(this.db.collection('files'));
-    this.createFile = promisify(this.db.collection('files').insertOne).bind(this.db.collection('files'));
+      this.nbUsers = promisify(this.db.collection('users').countDocuments).bind(this.db.collection('users'));
+      this.findUser = promisify(this.db.collection('users').findOne).bind(this.db.collection('users'));
+      this.nbFiles = promisify(this.db.collection('files').countDocuments).bind(this.db.collection('files'));
+      this.findFile = promisify(this.db.collection('files').findOne).bind(this.db.collection('files'));
+      this.createFile = promisify(this.db.collection('files').insertOne).bind(this.db.collection('files'));
+
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.log(error.message);
+    }
   }
 
   isActive() {
-    return this.client.isConnected();
+    return this.client && this.client.topology.isConnected();
   }
 
   async nbUsers() {
@@ -73,5 +84,4 @@ class DBClient {
 }
 
 const dbClient = new DBClient();
-
 module.exports = dbClient;
