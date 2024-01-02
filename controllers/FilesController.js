@@ -1,11 +1,8 @@
-// import { dbClient } from '../utils/db';
-// import { redisClient}  from '../utils/redis';
-// import { fileQueue } from '../worker';
-
 // A media type (also known as a Multipurpose Internet Mail Extensions or MIME type)
 const mime = require('mime-types');
 const fs = require('fs');
-const uuid = require('uuidv4');
+const { v4: uuid } = require('uuid');
+const path = require('path');
 
 const dbClient = require('../utils/db');
 const redisClient = require('../utils/redis');
@@ -20,8 +17,49 @@ class FileController {
     this.client = dbClient;
     this.redisClient = redisClient;
     this.path = process.env.FILES_PATH || '/tmp/files_manager';
+
+    this.postUpload = this.postUpload.bind(this);
+    this.getShow = this.getShow.bind(this);
+    this.getIndex = this.getIndex.bind(this);
+    this.putPublish = this.putPublish.bind(this);
+    this.putUnpublish = this.putUnpublish.bind(this);
+    this.getFile = this.getFile.bind(this);
+    this.retrieveUser = this.retrieveUser.bind(this);
   }
 
+  /*
+  * POST /users/:id/files
+  * REQUEST BODY = {
+  *  "name": " file_name ",
+  * "type": " file_type ",
+  * "isPublic": " true or false ",
+  * "parentId": " parent_id ",
+  * "data": " file_data "
+  * }
+  * curl -X POST -H "X-Token: token" -H "Content-Type: application/json" \
+  *   -d '{ "name": " file_name ", "type": " file_type ",
+  *        "isPublic": " true or false ", "parentId": " parent_id ",
+  *         "data": " file_data " }' http://localhost:5000/files
+  * IF SUCCESS:
+  * RESPONSE = {
+  * "id": " file_id ",
+  * "userId": " user_id ",
+  * "name": " file_name ",
+  * "type": " file_type ",
+  * "isPublic": " true or false ",
+  * "parentId": " parent_id "
+  * }
+  * RESPONSE STATUS = 201
+  * ELSE:
+  * RESPONSE = {
+  * "error": " Missing name "
+  * "error": " Missing type "
+  * "error": " Missing data "
+  * "error": " Parent not found "
+  * "error": " Parent is not a folder "
+  * }
+  * RESPONSE STATUS = 400
+  */
   postUpload(req, res) {
     const userId = this.retrieveUser(req, res);
     const acceptedFileTypes = ['folder', 'file', 'image'];
@@ -55,10 +93,13 @@ class FileController {
       return res.status(201).send(fileCreated);
     }
     const fileName = uuid();
-    const filePath = `${this.path}/${fileName}`;
-    const buff = Buffer.from(data, 'base64');
+    const uploadsPath = path.join(__dirname, 'uploads');
 
-    fs.mkdirSync(this.path, { recursive: true });
+    const filePath = path.join(uploadsPath, fileName);
+    const buff = Buffer.from(data, 'base64');
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
     fs.writeFileSync(filePath, buff);
 
     const file = {
@@ -173,7 +214,7 @@ class FileController {
     if (!userId) return res.status(401).send({ error: 'Unauthorized' });
 
     const user = this.client.findUser({ _id: userId });
-    if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    if (!user) return res.status(401).send({ error: 'User not found' });
     return userId;
   }
 }
